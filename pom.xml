@@ -420,8 +420,8 @@
     </plugins>
   </build>
   <modules>
+    <module>ncgenes-clean-workflow</module>
     <module>ncgenes-clean-commands</module>
     <module>ncgenes-clean-features</module>
-    <module>ncgenes-clean-workflow</module>
   </modules>
 </project>
