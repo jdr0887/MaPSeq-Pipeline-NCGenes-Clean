@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines</groupId>
   <artifactId>ncgenes-clean</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.3</version>
   <packaging>pom</packaging>
   <url>https://ci-dev.renci.org/site/mapseq</url>
   <properties>
@@ -242,7 +242,7 @@
       <dependency>
       	<groupId>edu.unc.mapseq.pipelines.ncgenes-clean</groupId>
       	<artifactId>ncgenes-clean-workflow</artifactId>
-      	<version>0.0.3-SNAPSHOT</version>
+      	<version>0.0.3</version>
       </dependency>
       <dependency>
 	<groupId>edu.unc.mapseq.mapseq-messaging</groupId>
