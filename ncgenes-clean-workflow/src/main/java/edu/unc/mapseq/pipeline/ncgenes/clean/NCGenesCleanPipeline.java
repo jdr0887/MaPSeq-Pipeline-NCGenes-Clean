@@ -38,7 +38,7 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
 
     @Override
     public String getName() {
-        return NCGenesCleanPipeline.class.getSimpleName().replace("Pipeline", "").toUpperCase();
+        return NCGenesCleanPipeline.class.getSimpleName().replace("Pipeline", "");
     }
 
     @Override
