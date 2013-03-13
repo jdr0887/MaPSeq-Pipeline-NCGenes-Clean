@@ -1,11 +1,10 @@
 package edu.unc.mapseq.pipeline.ncgenes.clean;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
+import java.util.ResourceBundle;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -17,13 +16,13 @@ import org.renci.jlrm.condor.CondorJobEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.unc.mapseq.config.RunModeType;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
-import edu.unc.mapseq.dao.model.EntityAttribute;
 import edu.unc.mapseq.dao.model.HTSFSample;
 import edu.unc.mapseq.dao.model.SequencerRun;
+import edu.unc.mapseq.module.core.RemoveCLI;
 import edu.unc.mapseq.pipeline.AbstractPipeline;
 import edu.unc.mapseq.pipeline.PipelineException;
+import edu.unc.mapseq.pipeline.PipelineJobFactory;
 import edu.unc.mapseq.pipeline.PipelineUtil;
 
 public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineBeanService> {
@@ -43,13 +42,9 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
 
     @Override
     public String getVersion() {
-        Properties props = new Properties();
-        try {
-            props.load(this.getClass().getResourceAsStream("pipeline.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return props.getProperty("version", "0.0.1-SNAPSHOT");
+        ResourceBundle bundle = ResourceBundle.getBundle("edu/unc/mapseq/pipeline/ncgenes/clean/pipeline");
+        String version = bundle.getString("version");
+        return StringUtils.isNotEmpty(version) ? version : "0.0.1-SNAPSHOT";
     }
 
     @Override
@@ -60,7 +55,6 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
                 CondorJobEdge.class);
 
         int count = 0;
-        String version = null;
 
         if (getWorkflowPlan().getSequencerRun() == null && getWorkflowPlan().getHTSFSamples() == null) {
             logger.error("Don't have either sequencerRun and htsfSample");
@@ -84,8 +78,6 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
             htsfSampleSet.addAll(getWorkflowPlan().getHTSFSamples());
         }
 
-        RunModeType runMode = getPipelineBeanService().getMapseqConfigurationService().getRunMode();
-
         for (HTSFSample htsfSample : htsfSampleSet) {
 
             if ("Undetermined".equals(htsfSample.getBarcode())) {
@@ -98,36 +90,9 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
             File tmpDir = new File(outputDirectory, "tmp");
             tmpDir.mkdirs();
 
-            Set<EntityAttribute> attributeSet = htsfSample.getAttributes();
-            Iterator<EntityAttribute> attributeIter = attributeSet.iterator();
-            while (attributeIter.hasNext()) {
-                EntityAttribute attribute = attributeIter.next();
-                if ("GATKDepthOfCoverage.interval_list.version".equals(attribute.getName())) {
-                    version = attribute.getValue();
-                }
-            }
-
-            if (version == null) {
-                throw new PipelineException("Version is null...returning empty dag");
-            }
-
-            File intervalListByVersionFile = new File(String.format(
-                    "/proj/renci/sequence_analysis/annotation/abeast/NCGenes/%1$s/exons_pm_0_v%1$s.interval_list",
-                    version));
-            if (!intervalListByVersionFile.exists()) {
-                throw new PipelineException("Interval list file does not exist: "
-                        + intervalListByVersionFile.getAbsolutePath());
-            }
-
             logger.debug("htsfSample = {}", htsfSample.toString());
             List<File> readPairList = PipelineUtil.getReadPairList(htsfSample.getFileDatas(), sequencerRun.getName(),
                     htsfSample.getLaneIndex());
-            logger.debug("fileList = {}", readPairList.size());
-
-            // assumption: a dash is used as a delimiter between a participantId
-            // and the external code
-            int idx = htsfSample.getName().lastIndexOf("-");
-            String participantId = idx != -1 ? htsfSample.getName().substring(0, idx) : htsfSample.getName();
 
             if (readPairList.size() == 2) {
 
@@ -140,6 +105,103 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
                 String fastqLaneRootName = StringUtils.removeEnd(r2FastqRootName, "_R2");
 
                 try {
+
+                    List<File> deleteFileList = new ArrayList<File>();
+
+                    File fastqcR1Output = new File(outputDirectory, r1FastqRootName + ".fastqc.zip");
+
+                    File saiR1OutFile = new File(outputDirectory, r1FastqRootName + ".sai");
+                    deleteFileList.add(saiR1OutFile);
+
+                    File fastqcR2Output = new File(outputDirectory, r2FastqRootName + ".fastqc.zip");
+
+                    File saiR2OutFile = new File(outputDirectory, r2FastqRootName + ".sai");
+                    deleteFileList.add(saiR2OutFile);
+
+                    File bwaSAMPairedEndOutFile = new File(outputDirectory, fastqLaneRootName + ".sam");
+                    deleteFileList.add(bwaSAMPairedEndOutFile);
+
+                    File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam",
+                            ".fixed-rg.bam"));
+                    deleteFileList.add(fixRGOutput);
+
+                    File picardAddOrReplaceReadGroupsIndexOut = new File(outputDirectory, fixRGOutput.getName()
+                            .replace(".bam", ".bai"));
+                    deleteFileList.add(picardAddOrReplaceReadGroupsIndexOut);
+
+                    File picardMarkDuplicatesMetricsFile = new File(outputDirectory, fixRGOutput.getName().replace(
+                            ".bam", ".deduped.metrics"));
+
+                    File picardMarkDuplicatesOutput = new File(outputDirectory, fixRGOutput.getName().replace(".bam",
+                            ".deduped.bam"));
+
+                    File picardMarkDuplicatesIndexOut = new File(outputDirectory, picardMarkDuplicatesOutput.getName()
+                            .replace(".bam", ".bai"));
+
+                    File realignTargetCreatorOut = new File(outputDirectory, picardMarkDuplicatesOutput.getName()
+                            .replace(".bam", ".targets.intervals"));
+                    deleteFileList.add(realignTargetCreatorOut);
+
+                    File indelRealignerOut = new File(outputDirectory, picardMarkDuplicatesOutput.getName().replace(
+                            ".bam", ".realign.bam"));
+                    deleteFileList.add(indelRealignerOut);
+
+                    File picardFixMateOutput = new File(outputDirectory, indelRealignerOut.getName().replace(".bam",
+                            ".fixmate.bam"));
+                    deleteFileList.add(picardFixMateOutput);
+
+                    File picardFixMateIndexOut = new File(outputDirectory, picardFixMateOutput.getName().replace(
+                            ".bam", ".bai"));
+                    deleteFileList.add(picardFixMateIndexOut);
+
+                    File gatkCountCovariatesRecalFile = new File(outputDirectory, picardFixMateOutput.getName()
+                            .replace(".bam", ".bam.cov"));
+
+                    File gatkTableRecalibrationOut = new File(outputDirectory, picardFixMateOutput.getName().replace(
+                            ".bam", ".recal.bam"));
+
+                    File gatkTableRecalibrationIndexOut = new File(outputDirectory, gatkTableRecalibrationOut.getName()
+                            .replace(".bam", ".bai"));
+
+                    File samtoolsFlagstatOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(
+                            ".bam", ".samtools.flagstat"));
+
+                    File gatkFlagstatOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(
+                            ".bam", ".gatk.flagstat"));
+
+                    // gatkDepthOfCoverageJob.addArgument(GATKDepthOfCoverageCLI.OUTPUTPREFIX, gatkTableRecalibrationOut
+                    // .getName().replace(".bam", ".coverage"));
+
+                    File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName()
+                            .replace(".bam", ".vcf"));
+
+                    File gatkUnifiedGenotyperMetrics = new File(outputDirectory, gatkTableRecalibrationOut.getName()
+                            .replace(".bam", ".metrics"));
+
+                    File filterVariant1Output = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(
+                            ".bam", ".variant.vcf"));
+
+                    File gatkVariantRecalibratorRecalFile = new File(outputDirectory, filterVariant1Output.getName()
+                            .replace(".vcf", ".recal"));
+
+                    File gatkVariantRecalibratorTranchesFile = new File(outputDirectory, filterVariant1Output.getName()
+                            .replace(".vcf", ".tranches"));
+
+                    File gatkVariantRecalibratorRScriptFile = new File(outputDirectory, filterVariant1Output.getName()
+                            .replace(".vcf", ".plots.R"));
+
+                    File gatkApplyRecalibrationOut = new File(outputDirectory, filterVariant1Output.getName().replace(
+                            ".vcf", ".recalibrated.filtered.vcf"));
+
+                    File filterVariant2Output = new File(outputDirectory, filterVariant1Output.getName().replace(
+                            ".vcf", ".ic_snps.vcf"));
+
+                    for (File f : deleteFileList) {
+                        CondorJob removeJob = PipelineJobFactory.createJob(++count, RemoveCLI.class, getWorkflowPlan(),
+                                htsfSample);
+                        removeJob.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
+                        graph.addVertex(removeJob);
+                    }
 
                 } catch (Exception e) {
                     throw new PipelineException(e);
