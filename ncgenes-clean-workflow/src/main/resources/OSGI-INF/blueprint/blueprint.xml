@@ -2,11 +2,9 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0">
 
-  <cm:property-placeholder persistent-id="edu.unc.mapseq.pipeline.ncgenes.alignment"
+  <cm:property-placeholder persistent-id="edu.unc.mapseq.pipeline.ncgenes.clean"
     update-strategy="reload">
     <cm:default-properties>
-      <cm:property name="reference-sequence"
-        value="/proj/renci/sequence_analysis/references/BUILD.37.1/bwa061sam0118/BUILD.37.1.sorted.shortid.fa" />
     </cm:default-properties>
   </cm:property-placeholder>
 
@@ -37,14 +35,17 @@
     <property name="workflowRunDAO" ref="workflowRunDAO" />
   </bean>
 
-  <bean id="NCGenesAlignmentPipelineBeanService" class="edu.unc.mapseq.pipeline.ncgenes.alignment.NCGenesAlignmentPipelineBeanService">
+  <bean id="NCGenesCleanPipelineBeanService" class="edu.unc.mapseq.pipeline.ncgenes.clean.NCGenesCleanPipelineBeanService">
     <property name="mapseqConfigurationService" ref="mapseqConfigurationService" />
     <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
-    <property name="referenceSequence" value="${reference-sequence}" />
-    <cm:managed-properties persistent-id="edu.unc.mapseq.pipeline.ncgenes.alignment"
-      update-strategy="container-managed" />
+    <cm:managed-properties persistent-id="edu.unc.mapseq.pipeline.ncgenes.clean" update-strategy="container-managed" />
   </bean>
 
-  <service ref="NCGenesAlignmentPipelineBeanService" interface="edu.unc.mapseq.pipeline.PipelineBeanService" />
+  <service ref="NCGenesCleanPipelineBeanService" interface="edu.unc.mapseq.pipeline.PipelineBeanService" />
+
+  <bean id="NCGenesCleanPipelineExecutorService" class="edu.unc.mapseq.pipeline.ncgenes.clean.NCGenesCleanPipelineExecutorService"
+    init-method="start" destroy-method="stop" activation="eager">
+    <property name="pipelineBeanService" ref="NCGenesCleanPipelineBeanService" />
+  </bean>
 
 </blueprint>
