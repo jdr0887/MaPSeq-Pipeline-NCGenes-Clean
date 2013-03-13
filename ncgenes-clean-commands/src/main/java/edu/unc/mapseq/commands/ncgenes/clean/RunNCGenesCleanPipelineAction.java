@@ -1,5 +1,7 @@
 package edu.unc.mapseq.commands.ncgenes.clean;
 
+import java.util.List;
+
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -18,72 +20,73 @@ import edu.unc.mapseq.dao.MaPSeqDAOBean;
 @Command(scope = "mapseq", name = "run-ncgenes-clean-pipeline", description = "Run NCGenes CleanPipeline")
 public class RunNCGenesCleanPipelineAction extends AbstractAction {
 
-	@Argument(index = 0, name = "workflowRunName", description = "WorkflowRun.name", required = true, multiValued = false)
-	private String workflowRunName;
+    @Argument(index = 0, name = "sequencerRunId", description = "SequencerRun.id", required = true, multiValued = false)
+    private Long sequencerRunId;
 
-	private MaPSeqDAOBean mapseqDAOBean;
+    @Argument(index = 1, name = "workflowRunName", description = "WorkflowRun.name", required = true, multiValued = false)
+    private String workflowRunName;
 
-	private MaPSeqConfigurationService mapseqConfigurationService;
+    private MaPSeqDAOBean mapseqDAOBean;
 
-	public RunNCGenesCleanPipelineAction() {
-		super();
-	}
+    private MaPSeqConfigurationService mapseqConfigurationService;
 
-	@Override
-	public Object doExecute() {
+    public RunNCGenesCleanPipelineAction() {
+        super();
+    }
 
-		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-				String.format("nio://%s:61616", mapseqConfigurationService
-						.getWebServiceHost("localhost")));
+    @Override
+    public Object doExecute() {
 
-		Connection connection = null;
-		Session session = null;
-		try {
-			connection = connectionFactory.createConnection();
-			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			Destination destination = session.createQueue("queue/ncgenes.clean");
-			MessageProducer producer = session.createProducer(destination);
-			producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-			String format = "{\"account_name\":\"%s\",\"entities\":[{\"entity_type\":\"WorkflowRun\",\"name\":\"%s\"}]}";
-			producer.send(session.createTextMessage(String.format(format,
-					System.getProperty("user.name"), workflowRunName)));
-		} catch (JMSException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				session.close();
-				connection.close();
-			} catch (JMSException e) {
-				e.printStackTrace();
-			}
-		}
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(String.format("nio://%s:61616",
+                mapseqConfigurationService.getWebServiceHost("localhost")));
 
-		return null;
-	}
+        Connection connection = null;
+        Session session = null;
+        try {
+            connection = connectionFactory.createConnection();
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            Destination destination = session.createQueue("queue/ncgenes.clean");
+            MessageProducer producer = session.createProducer(destination);
+            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            String format = "{\"account_name\":\"%s\",\"entities\":[{\"entity_type\":\"SequencerRun\",\"id\":\"%d\"},{\"entity_type\":\"WorkflowRun\",\"name\":\"%s\"}]}";
+            producer.send(session.createTextMessage(String.format(format, System.getProperty("user.name"),
+                    sequencerRunId, workflowRunName)));
+        } catch (JMSException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                session.close();
+                connection.close();
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
+        }
 
-	public String getWorkflowRunName() {
-		return workflowRunName;
-	}
+        return null;
+    }
 
-	public void setWorkflowRunName(String workflowRunName) {
-		this.workflowRunName = workflowRunName;
-	}
+    public String getWorkflowRunName() {
+        return workflowRunName;
+    }
 
-	public MaPSeqDAOBean getMapseqDAOBean() {
-		return mapseqDAOBean;
-	}
+    public void setWorkflowRunName(String workflowRunName) {
+        this.workflowRunName = workflowRunName;
+    }
 
-	public void setMapseqDAOBean(MaPSeqDAOBean mapseqDAOBean) {
-		this.mapseqDAOBean = mapseqDAOBean;
-	}
+    public MaPSeqDAOBean getMapseqDAOBean() {
+        return mapseqDAOBean;
+    }
 
-	public MaPSeqConfigurationService getMapseqConfigurationService() {
-		return mapseqConfigurationService;
-	}
+    public void setMapseqDAOBean(MaPSeqDAOBean mapseqDAOBean) {
+        this.mapseqDAOBean = mapseqDAOBean;
+    }
 
-	public void setMapseqConfigurationService(
-			MaPSeqConfigurationService mapseqConfigurationService) {
-		this.mapseqConfigurationService = mapseqConfigurationService;
-	}
+    public MaPSeqConfigurationService getMapseqConfigurationService() {
+        return mapseqConfigurationService;
+    }
+
+    public void setMapseqConfigurationService(MaPSeqConfigurationService mapseqConfigurationService) {
+        this.mapseqConfigurationService = mapseqConfigurationService;
+    }
 
 }
