@@ -74,9 +74,10 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
         }
 
         if (getWorkflowPlan().getHTSFSamples() != null) {
-            logger.info("htsfSampleSet.size(): {}", htsfSampleSet.size());
             htsfSampleSet.addAll(getWorkflowPlan().getHTSFSamples());
         }
+
+	logger.info("htsfSampleSet.size(): {}", htsfSampleSet.size());
 
         for (HTSFSample htsfSample : htsfSampleSet) {
 
