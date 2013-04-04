@@ -1,7 +1,5 @@
 package edu.unc.mapseq.commands.ncgenes.clean;
 
-import java.util.List;
-
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
