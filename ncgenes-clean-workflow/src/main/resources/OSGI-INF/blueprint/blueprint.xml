@@ -5,6 +5,9 @@
   <cm:property-placeholder persistent-id="edu.unc.mapseq.pipeline.ncgenes.clean"
     update-strategy="reload">
     <cm:default-properties>
+      <cm:property name="corePoolSize" value="20" />
+      <cm:property name="maxPoolSize" value="20" />
+      <cm:property name="period" value="300000" />
     </cm:default-properties>
   </cm:property-placeholder>
 
@@ -41,11 +44,22 @@
     <cm:managed-properties persistent-id="edu.unc.mapseq.pipeline.ncgenes.clean" update-strategy="container-managed" />
   </bean>
 
+  <bean id="threadPoolExecutor" class="edu.unc.mapseq.pipeline.PipelineThreadPoolExecutor">
+    <argument value="${corePoolSize}" />
+    <argument value="${maxPoolSize}" />
+  </bean>
+
+  <bean id="task" class="edu.unc.mapseq.pipeline.ncgenes.clean.NCGenesCleanPipelineExecutorTask">
+    <property name="pipelineBeanService" ref="NCGenesCleanPipelineBeanService" />
+    <property name="threadPoolExecutor" ref="threadPoolExecutor" />
+  </bean>
+
   <service ref="NCGenesCleanPipelineBeanService" interface="edu.unc.mapseq.pipeline.PipelineBeanService" />
 
   <bean id="NCGenesCleanPipelineExecutorService" class="edu.unc.mapseq.pipeline.ncgenes.clean.NCGenesCleanPipelineExecutorService"
     init-method="start" destroy-method="stop" activation="eager">
-    <property name="pipelineBeanService" ref="NCGenesCleanPipelineBeanService" />
+    <property name="task" ref="task" />
+    <property name="period" value="${period}" />
   </bean>
 
 </blueprint>
