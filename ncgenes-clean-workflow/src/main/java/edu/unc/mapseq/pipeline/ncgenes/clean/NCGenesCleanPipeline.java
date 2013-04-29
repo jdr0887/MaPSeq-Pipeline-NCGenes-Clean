@@ -200,6 +200,7 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
                     for (File f : deleteFileList) {
                         CondorJob removeJob = PipelineJobFactory.createJob(++count, RemoveCLI.class, getWorkflowPlan(),
                                 htsfSample);
+                        removeJob.setSiteName("Kure");
                         removeJob.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
                         graph.addVertex(removeJob);
                     }
