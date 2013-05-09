@@ -86,10 +86,8 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
             }
 
             SequencerRun sequencerRun = htsfSample.getSequencerRun();
-            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample.getName(), getName()
-                    .replace("Clean", ""));
-            File tmpDir = new File(outputDirectory, "tmp");
-            tmpDir.mkdirs();
+            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample,
+                    getName().replace("Clean", ""));
 
             logger.debug("htsfSample = {}", htsfSample.toString());
             List<File> readPairList = PipelineUtil.getReadPairList(htsfSample.getFileDatas(), sequencerRun.getName(),
