@@ -23,13 +23,13 @@ import edu.unc.mapseq.dao.model.WorkflowPlan;
 import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.dao.model.WorkflowRunStatusType;
 import edu.unc.mapseq.pipeline.EntityUtil;
-import edu.unc.mapseq.pipeline.ncgenes.clean.NCGenesCleanPipelineBeanService;
+import edu.unc.mapseq.pipeline.PipelineBeanService;
 
 public class NCGenesCleanMessageListener implements MessageListener {
 
     private final Logger logger = LoggerFactory.getLogger(NCGenesCleanMessageListener.class);
 
-    private NCGenesCleanPipelineBeanService pipelineBeanService;
+    private PipelineBeanService pipelineBeanService;
 
     public NCGenesCleanMessageListener() {
         super();
@@ -156,11 +156,11 @@ public class NCGenesCleanMessageListener implements MessageListener {
 
     }
 
-    public NCGenesCleanPipelineBeanService getPipelineBeanService() {
+    public PipelineBeanService getPipelineBeanService() {
         return pipelineBeanService;
     }
 
-    public void setPipelineBeanService(NCGenesCleanPipelineBeanService pipelineBeanService) {
+    public void setPipelineBeanService(PipelineBeanService pipelineBeanService) {
         this.pipelineBeanService = pipelineBeanService;
     }
 
