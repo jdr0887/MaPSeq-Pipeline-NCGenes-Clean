@@ -21,15 +21,16 @@ import edu.unc.mapseq.dao.model.HTSFSample;
 import edu.unc.mapseq.dao.model.SequencerRun;
 import edu.unc.mapseq.module.core.RemoveCLI;
 import edu.unc.mapseq.pipeline.AbstractPipeline;
+import edu.unc.mapseq.pipeline.PipelineBeanService;
 import edu.unc.mapseq.pipeline.PipelineException;
 import edu.unc.mapseq.pipeline.PipelineJobFactory;
 import edu.unc.mapseq.pipeline.PipelineUtil;
 
-public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineBeanService> {
+public class NCGenesCleanPipeline extends AbstractPipeline {
 
     private final Logger logger = LoggerFactory.getLogger(NCGenesCleanPipeline.class);
 
-    private NCGenesCleanPipelineBeanService pipelineBeanService;
+    private PipelineBeanService pipelineBeanService;
 
     public NCGenesCleanPipeline() {
         super();
@@ -78,6 +79,8 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
         }
 
         logger.info("htsfSampleSet.size(): {}", htsfSampleSet.size());
+
+        String siteName = getPipelineBeanService().getAttributes().get("siteName");
 
         for (HTSFSample htsfSample : htsfSampleSet) {
 
@@ -198,7 +201,7 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
                     for (File f : deleteFileList) {
                         CondorJob removeJob = PipelineJobFactory.createJob(++count, RemoveCLI.class, getWorkflowPlan(),
                                 htsfSample);
-                        removeJob.setSiteName("Kure");
+                        removeJob.setSiteName(siteName);
                         removeJob.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
                         graph.addVertex(removeJob);
                     }
@@ -214,11 +217,11 @@ public class NCGenesCleanPipeline extends AbstractPipeline<NCGenesCleanPipelineB
         return graph;
     }
 
-    public NCGenesCleanPipelineBeanService getPipelineBeanService() {
+    public PipelineBeanService getPipelineBeanService() {
         return pipelineBeanService;
     }
 
-    public void setPipelineBeanService(NCGenesCleanPipelineBeanService pipelineBeanService) {
+    public void setPipelineBeanService(PipelineBeanService pipelineBeanService) {
         this.pipelineBeanService = pipelineBeanService;
     }
 
