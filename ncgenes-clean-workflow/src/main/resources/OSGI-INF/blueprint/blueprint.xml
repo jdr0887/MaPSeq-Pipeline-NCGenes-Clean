@@ -7,11 +7,10 @@
     <cm:default-properties>
       <cm:property name="corePoolSize" value="100" />
       <cm:property name="maxPoolSize" value="100" />
-      <cm:property name="period" value="5" />
     </cm:default-properties>
   </cm:property-placeholder>
 
-  <reference id="mapseqConfigurationService" interface="edu.unc.mapseq.config.MaPSeqConfigurationService" />
+  <reference id="maPSeqConfigurationService" interface="edu.unc.mapseq.config.MaPSeqConfigurationService" />
   <reference id="accountDAO" interface="edu.unc.mapseq.dao.AccountDAO" />
   <reference id="accountGroupDAO" interface="edu.unc.mapseq.dao.AccountGroupDAO" />
   <reference id="fileDataDAO" interface="edu.unc.mapseq.dao.FileDataDAO" />
@@ -38,28 +37,19 @@
     <property name="workflowRunDAO" ref="workflowRunDAO" />
   </bean>
 
-  <bean id="NCGenesCleanPipelineBeanService" class="edu.unc.mapseq.pipeline.ncgenes.clean.NCGenesCleanPipelineBeanService">
-    <property name="mapseqConfigurationService" ref="mapseqConfigurationService" />
+  <bean id="NCGenesCleanPipelineBeanService" class="edu.unc.mapseq.pipeline.PipelineBeanServiceImpl">
+    <property name="corePoolSize" value="${corePoolSize}" />
+    <property name="maxPoolSize" value="${maxPoolSize}" />
+    <property name="maPSeqConfigurationService" ref="maPSeqConfigurationService" />
     <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
+    <property name="attributes">
+      <map>
+        <entry key="siteName" value="${siteName}" />
+      </map>
+    </property>
     <cm:managed-properties persistent-id="edu.unc.mapseq.pipeline.ncgenes.clean" update-strategy="container-managed" />
   </bean>
 
-  <bean id="threadPoolExecutor" class="edu.unc.mapseq.pipeline.PipelineThreadPoolExecutor">
-    <argument value="${corePoolSize}" />
-    <argument value="${maxPoolSize}" />
-  </bean>
-
-  <bean id="task" class="edu.unc.mapseq.pipeline.ncgenes.clean.NCGenesCleanPipelineExecutorTask">
-    <property name="pipelineBeanService" ref="NCGenesCleanPipelineBeanService" />
-    <property name="threadPoolExecutor" ref="threadPoolExecutor" />
-  </bean>
-
   <service ref="NCGenesCleanPipelineBeanService" interface="edu.unc.mapseq.pipeline.PipelineBeanService" />
-
-  <bean id="NCGenesCleanPipelineExecutorService" class="edu.unc.mapseq.pipeline.ncgenes.clean.NCGenesCleanPipelineExecutorService"
-    init-method="start" destroy-method="stop" activation="eager">
-    <property name="task" ref="task" />
-    <property name="period" value="${period}" />
-  </bean>
 
 </blueprint>
