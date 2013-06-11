@@ -15,7 +15,7 @@ import org.apache.karaf.shell.console.AbstractAction;
 import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBean;
 
-@Command(scope = "mapseq", name = "run-ncgenes-clean-pipeline", description = "Run NCGenes CleanPipeline")
+@Command(scope = "mapseq", name = "run-ncgenes-clean-pipeline", description = "Run NCGenes Clean Pipeline")
 public class RunNCGenesCleanPipelineAction extends AbstractAction {
 
     @Argument(index = 0, name = "sequencerRunId", description = "SequencerRun.id", required = true, multiValued = false)
@@ -24,9 +24,9 @@ public class RunNCGenesCleanPipelineAction extends AbstractAction {
     @Argument(index = 1, name = "workflowRunName", description = "WorkflowRun.name", required = true, multiValued = false)
     private String workflowRunName;
 
-    private MaPSeqDAOBean mapseqDAOBean;
+    private MaPSeqDAOBean maPSeqDAOBean;
 
-    private MaPSeqConfigurationService mapseqConfigurationService;
+    private MaPSeqConfigurationService maPSeqConfigurationService;
 
     public RunNCGenesCleanPipelineAction() {
         super();
@@ -36,7 +36,7 @@ public class RunNCGenesCleanPipelineAction extends AbstractAction {
     public Object doExecute() {
 
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(String.format("nio://%s:61616",
-                mapseqConfigurationService.getWebServiceHost("localhost")));
+                maPSeqConfigurationService.getWebServiceHost("localhost")));
 
         Connection connection = null;
         Session session = null;
@@ -71,20 +71,28 @@ public class RunNCGenesCleanPipelineAction extends AbstractAction {
         this.workflowRunName = workflowRunName;
     }
 
-    public MaPSeqDAOBean getMapseqDAOBean() {
-        return mapseqDAOBean;
+    public Long getSequencerRunId() {
+        return sequencerRunId;
     }
 
-    public void setMapseqDAOBean(MaPSeqDAOBean mapseqDAOBean) {
-        this.mapseqDAOBean = mapseqDAOBean;
+    public void setSequencerRunId(Long sequencerRunId) {
+        this.sequencerRunId = sequencerRunId;
     }
 
-    public MaPSeqConfigurationService getMapseqConfigurationService() {
-        return mapseqConfigurationService;
+    public MaPSeqDAOBean getMaPSeqDAOBean() {
+        return maPSeqDAOBean;
     }
 
-    public void setMapseqConfigurationService(MaPSeqConfigurationService mapseqConfigurationService) {
-        this.mapseqConfigurationService = mapseqConfigurationService;
+    public void setMaPSeqDAOBean(MaPSeqDAOBean maPSeqDAOBean) {
+        this.maPSeqDAOBean = maPSeqDAOBean;
+    }
+
+    public MaPSeqConfigurationService getMaPSeqConfigurationService() {
+        return maPSeqConfigurationService;
+    }
+
+    public void setMaPSeqConfigurationService(MaPSeqConfigurationService maPSeqConfigurationService) {
+        this.maPSeqConfigurationService = maPSeqConfigurationService;
     }
 
 }
