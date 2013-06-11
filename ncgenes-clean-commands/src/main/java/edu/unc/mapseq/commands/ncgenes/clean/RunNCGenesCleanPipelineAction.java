@@ -15,7 +15,7 @@ import org.apache.karaf.shell.console.AbstractAction;
 import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBean;
 
-@Command(scope = "mapseq", name = "run-ncgenes-clean-pipeline", description = "Run NCGenes Clean Pipeline")
+@Command(scope = "ncgenes-clean", name = "run-pipeline", description = "Run NCGenes Clean Pipeline")
 public class RunNCGenesCleanPipelineAction extends AbstractAction {
 
     @Argument(index = 0, name = "sequencerRunId", description = "SequencerRun.id", required = true, multiValued = false)
