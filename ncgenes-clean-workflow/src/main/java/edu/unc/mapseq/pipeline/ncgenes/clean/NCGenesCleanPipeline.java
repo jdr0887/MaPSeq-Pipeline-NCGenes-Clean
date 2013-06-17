@@ -21,7 +21,6 @@ import edu.unc.mapseq.dao.model.HTSFSample;
 import edu.unc.mapseq.dao.model.SequencerRun;
 import edu.unc.mapseq.module.core.RemoveCLI;
 import edu.unc.mapseq.pipeline.AbstractPipeline;
-import edu.unc.mapseq.pipeline.PipelineBeanService;
 import edu.unc.mapseq.pipeline.PipelineException;
 import edu.unc.mapseq.pipeline.PipelineJobFactory;
 import edu.unc.mapseq.pipeline.PipelineUtil;
@@ -29,8 +28,6 @@ import edu.unc.mapseq.pipeline.PipelineUtil;
 public class NCGenesCleanPipeline extends AbstractPipeline {
 
     private final Logger logger = LoggerFactory.getLogger(NCGenesCleanPipeline.class);
-
-    private PipelineBeanService pipelineBeanService;
 
     public NCGenesCleanPipeline() {
         super();
@@ -67,7 +64,7 @@ public class NCGenesCleanPipeline extends AbstractPipeline {
         if (getWorkflowPlan().getSequencerRun() != null) {
             logger.info("sequencerRun: {}", getWorkflowPlan().getSequencerRun().toString());
             try {
-                htsfSampleSet.addAll(this.pipelineBeanService.getMaPSeqDAOBean().getHTSFSampleDAO()
+                htsfSampleSet.addAll(getPipelineBeanService().getMaPSeqDAOBean().getHTSFSampleDAO()
                         .findBySequencerRunId(getWorkflowPlan().getSequencerRun().getId()));
             } catch (MaPSeqDAOException e) {
                 e.printStackTrace();
@@ -215,14 +212,6 @@ public class NCGenesCleanPipeline extends AbstractPipeline {
         }
 
         return graph;
-    }
-
-    public PipelineBeanService getPipelineBeanService() {
-        return pipelineBeanService;
-    }
-
-    public void setPipelineBeanService(PipelineBeanService pipelineBeanService) {
-        this.pipelineBeanService = pipelineBeanService;
     }
 
 }
