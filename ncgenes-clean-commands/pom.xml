@@ -2,13 +2,13 @@
   <parent>
     <groupId>edu.unc.mapseq.pipelines</groupId>
     <artifactId>ncgenes-clean</artifactId>
-    <version>0.2.21</version>
+    <version>0.2.22-SNAPSHOT</version>
   </parent>
   <name>MaPSeq :: Pipelines :: NCGenes Clean :: Commands</name>
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines.ncgenes-clean</groupId>
   <artifactId>ncgenes-clean-commands</artifactId>
-  <version>0.2.21</version>
+  <version>0.2.22-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
