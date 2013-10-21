@@ -195,13 +195,13 @@ public class NCGenesCleanPipeline extends AbstractPipeline {
                     File filterVariant2Output = new File(outputDirectory, filterVariant1Output.getName().replace(
                             ".vcf", ".ic_snps.vcf"));
 
+                    CondorJob removeJob = PipelineJobFactory.createJob(++count, RemoveCLI.class, getWorkflowPlan(),
+                            htsfSample);
+                    removeJob.setSiteName(siteName);
                     for (File f : deleteFileList) {
-                        CondorJob removeJob = PipelineJobFactory.createJob(++count, RemoveCLI.class, getWorkflowPlan(),
-                                htsfSample);
-                        removeJob.setSiteName(siteName);
                         removeJob.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
-                        graph.addVertex(removeJob);
                     }
+                    graph.addVertex(removeJob);
 
                 } catch (Exception e) {
                     throw new PipelineException(e);
