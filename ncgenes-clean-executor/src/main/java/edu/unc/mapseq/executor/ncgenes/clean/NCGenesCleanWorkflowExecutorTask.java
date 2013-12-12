@@ -55,16 +55,16 @@ public class NCGenesCleanWorkflowExecutorTask extends TimerTask {
                 logger.info("dequeuing {} WorkflowPlans", workflowPlanList.size());
                 for (WorkflowPlan workflowPlan : workflowPlanList) {
 
-                    NCGenesCleanWorkflow pipeline = new NCGenesCleanWorkflow();
+                    NCGenesCleanWorkflow ncGenesCleanWorkflow = new NCGenesCleanWorkflow();
 
                     WorkflowRun workflowRun = workflowPlan.getWorkflowRun();
-                    workflowRun.setVersion(pipeline.getVersion());
+                    workflowRun.setVersion(ncGenesCleanWorkflow.getVersion());
                     workflowRun.setDequeuedDate(new Date());
                     workflowRunDAO.save(workflowRun);
 
-                    pipeline.setWorkflowBeanService(workflowBeanService);
-                    pipeline.setWorkflowPlan(workflowPlan);
-                    threadPoolExecutor.submit(new WorkflowExecutor(pipeline));
+                    ncGenesCleanWorkflow.setWorkflowBeanService(workflowBeanService);
+                    ncGenesCleanWorkflow.setWorkflowPlan(workflowPlan);
+                    threadPoolExecutor.submit(new WorkflowExecutor(ncGenesCleanWorkflow));
 
                 }
 
