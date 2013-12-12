@@ -9,14 +9,14 @@
     </cm:default-properties>
   </cm:property-placeholder>
 
-  <reference id="NCGenesCleanPipelineBeanService" interface="edu.unc.mapseq.pipeline.PipelineBeanService"
-    component-name="NCGenesCleanPipelineBeanService" />
+  <reference id="NCGenesCleanWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
+    component-name="NCGenesCleanWorkflowBeanService" />
 
-  <bean id="task" class="edu.unc.mapseq.executor.ncgenes.clean.NCGenesCleanPipelineExecutorTask">
-    <property name="pipelineBeanService" ref="NCGenesCleanPipelineBeanService" />
+  <bean id="task" class="edu.unc.mapseq.executor.ncgenes.clean.NCGenesCleanWorkflowExecutorTask">
+    <property name="workflowBeanService" ref="NCGenesCleanWorkflowBeanService" />
   </bean>
 
-  <bean id="NCGenesCleanPipelineExecutorService" class="edu.unc.mapseq.executor.ncgenes.clean.NCGenesCleanPipelineExecutorService"
+  <bean id="NCGenesCleanWorkflowExecutorService" class="edu.unc.mapseq.executor.ncgenes.clean.NCGenesCleanWorkflowExecutorService"
     init-method="start" destroy-method="stop" activation="eager">
     <property name="task" ref="task" />
     <property name="period" value="${period}" />
