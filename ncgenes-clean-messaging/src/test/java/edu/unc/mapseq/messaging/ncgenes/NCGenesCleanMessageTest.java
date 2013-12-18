@@ -24,7 +24,7 @@ public class NCGenesCleanMessageTest {
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             Destination destination = session.createQueue("queue/ncgenes.clean");
             MessageProducer producer = session.createProducer(destination);
-            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             // String value =
             // "{\"account_name\":\"powen\",\"entities\":[{\"entity_type\":\"HTSF Sample\",\"guid\":\"27354\",\"attributes\":[{\"name\":\"GATKDepthOfCoverage.interval_list.version\",\"value\":\"3\"},{\"name\":\"SAMToolsView.dx.id\",\"value\":\"2\"}]},{\"entity_type\":\"Workflow run\",\"name\":\"NCG_00007_Analysis_Pipeline_Run\"}]}";
             // producer.send(session.createTextMessage(value));
