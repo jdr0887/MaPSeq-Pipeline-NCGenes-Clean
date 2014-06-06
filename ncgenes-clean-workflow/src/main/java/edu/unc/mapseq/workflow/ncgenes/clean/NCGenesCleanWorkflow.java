@@ -11,6 +11,7 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.renci.jlrm.condor.CondorJob;
+import org.renci.jlrm.condor.CondorJobBuilder;
 import org.renci.jlrm.condor.CondorJobEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +19,10 @@ import org.slf4j.LoggerFactory;
 import edu.unc.mapseq.dao.model.HTSFSample;
 import edu.unc.mapseq.dao.model.SequencerRun;
 import edu.unc.mapseq.module.core.RemoveCLI;
-import edu.unc.mapseq.workflow.AbstractWorkflow;
 import edu.unc.mapseq.workflow.WorkflowException;
-import edu.unc.mapseq.workflow.WorkflowJobFactory;
 import edu.unc.mapseq.workflow.WorkflowUtil;
+import edu.unc.mapseq.workflow.impl.AbstractWorkflow;
+import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
 
 public class NCGenesCleanWorkflow extends AbstractWorkflow {
 
@@ -173,12 +174,13 @@ public class NCGenesCleanWorkflow extends AbstractWorkflow {
                     File filterVariant2Output = new File(outputDirectory, filterVariant1Output.getName().replace(
                             ".vcf", ".ic_snps.vcf"));
 
-                    CondorJob removeJob = WorkflowJobFactory.createJob(++count, RemoveCLI.class, getWorkflowPlan(),
-                            htsfSample);
-                    removeJob.setSiteName(siteName);
+                    CondorJobBuilder builder = WorkflowJobFactory.createJob(++count, RemoveCLI.class,
+                            getWorkflowPlan(), htsfSample).siteName(siteName);
                     for (File f : deleteFileList) {
-                        removeJob.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
+                        builder.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
                     }
+                    CondorJob removeJob = builder.build();
+                    logger.info(removeJob.toString());
                     graph.addVertex(removeJob);
 
                 } catch (Exception e) {
