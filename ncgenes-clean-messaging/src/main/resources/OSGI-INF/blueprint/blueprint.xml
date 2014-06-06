@@ -7,10 +7,14 @@
   <reference id="NCGenesCleanWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
     component-name="NCGenesCleanWorkflowBeanService" />
 
-  <bean id="NCGenesCleanMessagingService" class="edu.unc.mapseq.messaging.ncgenes.clean.NCGenesCleanMessagingService"
+  <bean id="NCGenesCleanMessageListener" class="edu.unc.mapseq.messaging.ncgenes.clean.NCGenesCleanMessageListener">
+    <property name="workflowBeanService" ref="NCGenesCleanWorkflowBeanService" />
+  </bean>
+
+  <bean id="NCGenesCleanMessageService" class="edu.unc.mapseq.messaging.ncgenes.clean.NCGenesCleanMessageService"
     init-method="start" destroy-method="stop" activation="eager">
     <property name="connectionFactory" ref="connectionFactory" />
-    <property name="workflowBeanService" ref="NCGenesCleanWorkflowBeanService" />
+    <property name="messageListener" ref="NCGenesCleanMessageListener" />
     <property name="destinationName" value="queue/ncgenes.clean" />
   </bean>
 
