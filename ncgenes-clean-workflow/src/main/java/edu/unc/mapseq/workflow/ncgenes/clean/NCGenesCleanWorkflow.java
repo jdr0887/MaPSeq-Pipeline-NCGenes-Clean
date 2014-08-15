@@ -16,15 +16,16 @@ import org.renci.jlrm.condor.CondorJobEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.unc.mapseq.dao.model.HTSFSample;
-import edu.unc.mapseq.dao.model.SequencerRun;
+import edu.unc.mapseq.dao.model.Flowcell;
+import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 import edu.unc.mapseq.module.core.RemoveCLI;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.WorkflowUtil;
-import edu.unc.mapseq.workflow.impl.AbstractWorkflow;
+import edu.unc.mapseq.workflow.impl.AbstractSampleWorkflow;
 import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
 
-public class NCGenesCleanWorkflow extends AbstractWorkflow {
+public class NCGenesCleanWorkflow extends AbstractSampleWorkflow {
 
     private final Logger logger = LoggerFactory.getLogger(NCGenesCleanWorkflow.class);
 
@@ -53,24 +54,26 @@ public class NCGenesCleanWorkflow extends AbstractWorkflow {
 
         int count = 0;
 
-        Set<HTSFSample> htsfSampleSet = getAggregateHTSFSampleSet();
-        logger.info("htsfSampleSet.size(): {}", htsfSampleSet.size());
+        Set<Sample> sampleSet = getAggregatedSamples();
+        logger.info("sampleSet.size(): {}", sampleSet.size());
 
         String siteName = getWorkflowBeanService().getAttributes().get("siteName");
 
-        for (HTSFSample htsfSample : htsfSampleSet) {
+        WorkflowRunAttempt attempt = getWorkflowRunAttempt();
 
-            if ("Undetermined".equals(htsfSample.getBarcode())) {
+        for (Sample sample : sampleSet) {
+
+            if ("Undetermined".equals(sample.getBarcode())) {
                 continue;
             }
 
-            SequencerRun sequencerRun = htsfSample.getSequencerRun();
-            File outputDirectory = createOutputDirectory(sequencerRun.getName(), htsfSample,
-                    getName().replace("Clean", ""), getVersion());
+            logger.debug(sample.toString());
 
-            logger.debug("htsfSample = {}", htsfSample.toString());
-            List<File> readPairList = WorkflowUtil.getReadPairList(htsfSample.getFileDatas(), sequencerRun.getName(),
-                    htsfSample.getLaneIndex());
+            Flowcell flowcell = sample.getFlowcell();
+            File outputDirectory = new File(sample.getOutputDirectory());
+
+            List<File> readPairList = WorkflowUtil.getReadPairList(sample.getFileDatas(), flowcell.getName(),
+                    sample.getLaneIndex());
 
             if (readPairList.size() == 2) {
 
@@ -174,8 +177,8 @@ public class NCGenesCleanWorkflow extends AbstractWorkflow {
                     File filterVariant2Output = new File(outputDirectory, filterVariant1Output.getName().replace(
                             ".vcf", ".ic_snps.vcf"));
 
-                    CondorJobBuilder builder = WorkflowJobFactory.createJob(++count, RemoveCLI.class,
-                            getWorkflowPlan(), htsfSample).siteName(siteName);
+                    CondorJobBuilder builder = WorkflowJobFactory.createJob(++count, RemoveCLI.class, attempt, sample)
+                            .siteName(siteName);
                     for (File f : deleteFileList) {
                         builder.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
                     }
