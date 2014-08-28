@@ -70,7 +70,9 @@ public class NCGenesCleanWorkflow extends AbstractSampleWorkflow {
             logger.debug(sample.toString());
 
             Flowcell flowcell = sample.getFlowcell();
-            File outputDirectory = new File(sample.getOutputDirectory());
+            File outputDirectory = new File(sample.getOutputDirectory(), getName().replace("Clean", ""));
+            File tmpDirectory = new File(outputDirectory, "tmp");
+            tmpDirectory.mkdirs();
 
             List<File> readPairList = WorkflowUtil.getReadPairList(sample.getFileDatas(), flowcell.getName(),
                     sample.getLaneIndex());
