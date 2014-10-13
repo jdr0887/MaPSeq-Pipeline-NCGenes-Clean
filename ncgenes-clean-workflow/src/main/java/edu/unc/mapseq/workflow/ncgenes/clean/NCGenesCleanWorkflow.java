@@ -179,7 +179,7 @@ public class NCGenesCleanWorkflow extends AbstractSampleWorkflow {
                     File filterVariant2Output = new File(outputDirectory, filterVariant1Output.getName().replace(
                             ".vcf", ".ic_snps.vcf"));
 
-                    CondorJobBuilder builder = WorkflowJobFactory.createJob(++count, RemoveCLI.class, attempt)
+                    CondorJobBuilder builder = WorkflowJobFactory.createJob(++count, RemoveCLI.class, attempt.getId())
                             .siteName(siteName);
                     for (File f : deleteFileList) {
                         builder.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
