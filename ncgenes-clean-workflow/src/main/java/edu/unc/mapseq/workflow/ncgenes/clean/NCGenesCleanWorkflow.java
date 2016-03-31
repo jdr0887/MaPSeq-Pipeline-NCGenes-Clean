@@ -21,8 +21,8 @@ import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 import edu.unc.mapseq.module.core.RemoveCLI;
 import edu.unc.mapseq.workflow.WorkflowException;
-import edu.unc.mapseq.workflow.WorkflowUtil;
 import edu.unc.mapseq.workflow.impl.AbstractSampleWorkflow;
+import edu.unc.mapseq.workflow.impl.SampleWorkflowUtil;
 import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
 
 public class NCGenesCleanWorkflow extends AbstractSampleWorkflow {
@@ -74,16 +74,15 @@ public class NCGenesCleanWorkflow extends AbstractSampleWorkflow {
             File tmpDirectory = new File(outputDirectory, "tmp");
             tmpDirectory.mkdirs();
 
-            List<File> readPairList = WorkflowUtil.getReadPairList(sample.getFileDatas(), flowcell.getName(),
-                    sample.getLaneIndex());
+            List<File> readPairList = SampleWorkflowUtil.getReadPairList(sample);
 
             if (readPairList.size() == 2) {
 
                 File r1FastqFile = readPairList.get(0);
-                String r1FastqRootName = WorkflowUtil.getRootFastqName(r1FastqFile.getName());
+                String r1FastqRootName = SampleWorkflowUtil.getRootFastqName(r1FastqFile.getName());
 
                 File r2FastqFile = readPairList.get(1);
-                String r2FastqRootName = WorkflowUtil.getRootFastqName(r2FastqFile.getName());
+                String r2FastqRootName = SampleWorkflowUtil.getRootFastqName(r2FastqFile.getName());
 
                 String fastqLaneRootName = StringUtils.removeEnd(r2FastqRootName, "_R2");
 
