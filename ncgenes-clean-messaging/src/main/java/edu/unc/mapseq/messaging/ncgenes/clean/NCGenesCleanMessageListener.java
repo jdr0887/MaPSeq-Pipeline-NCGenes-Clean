@@ -24,10 +24,10 @@ import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 import edu.unc.mapseq.dao.model.WorkflowRunAttemptStatusType;
 import edu.unc.mapseq.workflow.WorkflowException;
-import edu.unc.mapseq.workflow.impl.AbstractMessageListener;
 import edu.unc.mapseq.workflow.model.WorkflowMessage;
+import edu.unc.mapseq.workflow.sequencing.AbstractSequencingMessageListener;
 
-public class NCGenesCleanMessageListener extends AbstractMessageListener {
+public class NCGenesCleanMessageListener extends AbstractSequencingMessageListener {
 
     private final Logger logger = LoggerFactory.getLogger(NCGenesCleanMessageListener.class);
 
