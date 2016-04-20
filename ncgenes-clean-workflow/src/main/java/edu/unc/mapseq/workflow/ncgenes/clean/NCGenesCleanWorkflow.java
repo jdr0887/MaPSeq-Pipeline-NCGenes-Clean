@@ -81,7 +81,8 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
                 File r2FastqFile = readPairList.get(1);
                 String r2FastqRootName = SequencingWorkflowUtil.getRootFastqName(r2FastqFile.getName());
 
-                String fastqLaneRootName = StringUtils.removeEnd(r2FastqRootName, "_R2");
+                String rootFileName = String.format("%s_%s_L%03d", sample.getFlowcell().getName(), sample.getBarcode(),
+                        sample.getLaneIndex());
 
                 try {
 
@@ -97,7 +98,7 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
                     File saiR2OutFile = new File(outputDirectory, r2FastqRootName + ".sai");
                     deleteFileList.add(saiR2OutFile);
 
-                    File bwaSAMPairedEndOutFile = new File(outputDirectory, fastqLaneRootName + ".sam");
+                    File bwaSAMPairedEndOutFile = new File(outputDirectory, rootFileName + ".sam");
                     deleteFileList.add(bwaSAMPairedEndOutFile);
 
                     File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
@@ -123,11 +124,15 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
                             picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bam"));
                     deleteFileList.add(indelRealignerOut);
 
+                    File indelRealignerIndex = new File(outputDirectory,
+                            picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bai"));
+                    deleteFileList.add(indelRealignerIndex);
+
                     File picardFixMateOutput = new File(outputDirectory, indelRealignerOut.getName().replace(".bam", ".fixmate.bam"));
                     deleteFileList.add(picardFixMateOutput);
 
-                    File picardFixMateIndexOut = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".bai"));
-                    deleteFileList.add(picardFixMateIndexOut);
+                    File picardFixMateIndexIndex = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".bai"));
+                    deleteFileList.add(picardFixMateIndexIndex);
 
                     File gatkCountCovariatesRecalFile = new File(outputDirectory,
                             picardFixMateOutput.getName().replace(".bam", ".bam.cov"));
