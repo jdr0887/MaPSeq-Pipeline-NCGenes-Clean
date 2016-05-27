@@ -14,6 +14,7 @@
 
   <bean id="task" class="edu.unc.mapseq.executor.ncgenes.clean.NCGenesCleanWorkflowExecutorTask">
     <property name="workflowBeanService" ref="NCGenesCleanWorkflowBeanService" />
+    <property name="workflowName" value="NCGenesClean" />
   </bean>
 
   <bean id="NCGenesCleanWorkflowExecutorService" class="edu.unc.mapseq.executor.ncgenes.clean.NCGenesCleanWorkflowExecutorService"
