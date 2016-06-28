@@ -3,10 +3,8 @@ package edu.unc.mapseq.workflow.ncgenes.clean;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -19,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 import edu.unc.mapseq.module.core.RemoveCLI;
+import edu.unc.mapseq.workflow.SystemType;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.core.WorkflowJobFactory;
 import edu.unc.mapseq.workflow.sequencing.AbstractSequencingWorkflow;
@@ -38,10 +37,8 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
     }
 
     @Override
-    public String getVersion() {
-        ResourceBundle bundle = ResourceBundle.getBundle("edu/unc/mapseq/workflow/ncgenes/clean/workflow");
-        String version = bundle.getString("version");
-        return StringUtils.isNotEmpty(version) ? version : "0.0.1-SNAPSHOT";
+    public SystemType getSystem() {
+        return SystemType.PRODUCTION;
     }
 
     @Override
