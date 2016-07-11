@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -14,10 +15,11 @@ import org.renci.jlrm.condor.CondorJobEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 import edu.unc.mapseq.module.core.RemoveCLI;
-import edu.unc.mapseq.workflow.SystemType;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.core.WorkflowJobFactory;
 import edu.unc.mapseq.workflow.sequencing.AbstractSequencingWorkflow;
@@ -29,16 +31,6 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
 
     public NCGenesCleanWorkflow() {
         super();
-    }
-
-    @Override
-    public String getName() {
-        return NCGenesCleanWorkflow.class.getSimpleName().replace("Workflow", "");
-    }
-
-    @Override
-    public SystemType getSystem() {
-        return SystemType.PRODUCTION;
     }
 
     @Override
@@ -56,6 +48,18 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
 
         WorkflowRunAttempt attempt = getWorkflowRunAttempt();
 
+        Workflow workflow = null;
+        try {
+            List<Workflow> workflowList = getWorkflowBeanService().getMaPSeqDAOBeanService().getWorkflowDAO().findByName("NCGenesBaseline");
+            if (CollectionUtils.isEmpty(workflowList)) {
+                logger.error("Could not find NCGenesBaseline workflow");
+                throw new WorkflowException("Could not find NCGenesBaseline workflow");
+            }
+            workflow = workflowList.get(0);
+        } catch (MaPSeqDAOException e1) {
+            e1.printStackTrace();
+        }
+
         for (Sample sample : sampleSet) {
 
             if ("Undetermined".equals(sample.getBarcode())) {
@@ -64,7 +68,7 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
 
             logger.debug(sample.toString());
 
-            File outputDirectory = new File(sample.getOutputDirectory(), "NCGenesBaseline");
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
             File tmpDirectory = new File(outputDirectory, "tmp");
             tmpDirectory.mkdirs();
 
