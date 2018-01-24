@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.jgrapht.DirectedGraph;
@@ -49,14 +50,20 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
 
         WorkflowRunAttempt attempt = getWorkflowRunAttempt();
 
-        Workflow workflow = null;
+        List<Workflow> workflows = new ArrayList<>();
+
         try {
-            List<Workflow> workflowList = getWorkflowBeanService().getMaPSeqDAOBeanService().getWorkflowDAO().findByName("NCGenesBaseline");
-            if (CollectionUtils.isEmpty(workflowList)) {
-                logger.error("Could not find NCGenesBaseline workflow");
-                throw new WorkflowException("Could not find NCGenesBaseline workflow");
+            List<Workflow> foundWorkflows = getWorkflowBeanService().getMaPSeqDAOBeanService().getWorkflowDAO()
+                    .findByName("NCGenesBaseline");
+            if (CollectionUtils.isNotEmpty(foundWorkflows)) {
+                workflows.addAll(foundWorkflows);
             }
-            workflow = workflowList.get(0);
+
+            foundWorkflows = getWorkflowBeanService().getMaPSeqDAOBeanService().getWorkflowDAO().findByName("NCGenesBaselineMem");
+            if (CollectionUtils.isNotEmpty(foundWorkflows)) {
+                workflows.addAll(foundWorkflows);
+            }
+
         } catch (MaPSeqDAOException e1) {
             e1.printStackTrace();
         }
@@ -69,118 +76,129 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
 
             logger.debug(sample.toString());
 
-            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
-            File tmpDirectory = new File(outputDirectory, "tmp");
-            tmpDirectory.mkdirs();
+            for (Workflow workflow : workflows) {
+                File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
+                File tmpDirectory = new File(outputDirectory, "tmp");
+                tmpDirectory.mkdirs();
 
-            List<File> readPairList = SequencingWorkflowUtil.getReadPairList(sample);
+                List<File> readPairList = SequencingWorkflowUtil.getReadPairList(sample);
 
-            if (readPairList.size() == 2) {
+                if (readPairList.size() == 2) {
 
-                File r1FastqFile = readPairList.get(0);
-                String r1FastqRootName = SequencingWorkflowUtil.getRootFastqName(r1FastqFile.getName());
+                    File r1FastqFile = readPairList.get(0);
+                    String r1FastqRootName = SequencingWorkflowUtil.getRootFastqName(r1FastqFile.getName());
 
-                File r2FastqFile = readPairList.get(1);
-                String r2FastqRootName = SequencingWorkflowUtil.getRootFastqName(r2FastqFile.getName());
+                    File r2FastqFile = readPairList.get(1);
+                    String r2FastqRootName = SequencingWorkflowUtil.getRootFastqName(r2FastqFile.getName());
 
-                String rootFileName = String.format("%s_%s_L%03d", sample.getFlowcell().getName(), sample.getBarcode(),
-                        sample.getLaneIndex());
+                    String rootFileName = String.format("%s_%s_L%03d", sample.getFlowcell().getName(), sample.getBarcode(),
+                            sample.getLaneIndex());
 
-                try {
+                    try {
 
-                    List<File> deleteFileList = new ArrayList<File>();
+                        List<File> deleteFileList = new ArrayList<File>();
 
-                    File fastqcR1Output = new File(outputDirectory, r1FastqRootName + ".fastqc.zip");
+                        File fastqcR1Output = new File(outputDirectory, r1FastqRootName + ".fastqc.zip");
 
-                    File saiR1OutFile = new File(outputDirectory, r1FastqRootName + ".sai");
-                    deleteFileList.add(saiR1OutFile);
+                        File saiR1OutFile = new File(outputDirectory, r1FastqRootName + ".sai");
+                        deleteFileList.add(saiR1OutFile);
 
-                    File fastqcR2Output = new File(outputDirectory, r2FastqRootName + ".fastqc.zip");
+                        File fastqcR2Output = new File(outputDirectory, r2FastqRootName + ".fastqc.zip");
 
-                    File saiR2OutFile = new File(outputDirectory, r2FastqRootName + ".sai");
-                    deleteFileList.add(saiR2OutFile);
+                        File saiR2OutFile = new File(outputDirectory, r2FastqRootName + ".sai");
+                        deleteFileList.add(saiR2OutFile);
 
-                    File bwaSAMPairedEndOutFile = new File(outputDirectory, rootFileName + ".sam");
-                    deleteFileList.add(bwaSAMPairedEndOutFile);
+                        File bwaSAMPairedEndOutFile = new File(outputDirectory, rootFileName + ".sam");
+                        deleteFileList.add(bwaSAMPairedEndOutFile);
 
-                    File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
+                        File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
 
-                    File picardAddOrReplaceReadGroupsIndexOut = new File(outputDirectory, fixRGOutput.getName().replace(".bam", ".bai"));
+                        File picardAddOrReplaceReadGroupsIndexOut = new File(outputDirectory,
+                                fixRGOutput.getName().replace(".bam", ".bai"));
 
-                    File picardMarkDuplicatesMetricsFile = new File(outputDirectory,
-                            fixRGOutput.getName().replace(".bam", ".deduped.metrics"));
-                    deleteFileList.add(picardMarkDuplicatesMetricsFile);
+                        File picardMarkDuplicatesMetricsFile = new File(outputDirectory,
+                                fixRGOutput.getName().replace(".bam", ".deduped.metrics"));
+                        deleteFileList.add(picardMarkDuplicatesMetricsFile);
 
-                    File picardMarkDuplicatesOutput = new File(outputDirectory, fixRGOutput.getName().replace(".bam", ".deduped.bam"));
-                    deleteFileList.add(picardMarkDuplicatesOutput);
+                        File picardMarkDuplicatesOutput = new File(outputDirectory, fixRGOutput.getName().replace(".bam", ".deduped.bam"));
+                        deleteFileList.add(picardMarkDuplicatesOutput);
 
-                    File picardMarkDuplicatesIndexOut = new File(outputDirectory,
-                            picardMarkDuplicatesOutput.getName().replace(".bam", ".bai"));
-                    deleteFileList.add(picardMarkDuplicatesIndexOut);
+                        File picardMarkDuplicatesIndexOut = new File(outputDirectory,
+                                picardMarkDuplicatesOutput.getName().replace(".bam", ".bai"));
+                        deleteFileList.add(picardMarkDuplicatesIndexOut);
 
-                    File realignTargetCreatorOut = new File(outputDirectory,
-                            picardMarkDuplicatesOutput.getName().replace(".bam", ".targets.intervals"));
-                    deleteFileList.add(realignTargetCreatorOut);
+                        File realignTargetCreatorOut = new File(outputDirectory,
+                                picardMarkDuplicatesOutput.getName().replace(".bam", ".targets.intervals"));
+                        deleteFileList.add(realignTargetCreatorOut);
 
-                    File indelRealignerOut = new File(outputDirectory,
-                            picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bam"));
-                    deleteFileList.add(indelRealignerOut);
+                        File indelRealignerOut = new File(outputDirectory,
+                                picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bam"));
+                        deleteFileList.add(indelRealignerOut);
 
-                    File indelRealignerIndex = new File(outputDirectory,
-                            picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bai"));
-                    deleteFileList.add(indelRealignerIndex);
+                        File indelRealignerIndex = new File(outputDirectory,
+                                picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bai"));
+                        deleteFileList.add(indelRealignerIndex);
 
-                    File picardFixMateOutput = new File(outputDirectory, indelRealignerOut.getName().replace(".bam", ".fixmate.bam"));
-                    deleteFileList.add(picardFixMateOutput);
+                        File picardFixMateOutput = new File(outputDirectory, indelRealignerOut.getName().replace(".bam", ".fixmate.bam"));
+                        deleteFileList.add(picardFixMateOutput);
 
-                    File picardFixMateIndexIndex = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".bai"));
-                    deleteFileList.add(picardFixMateIndexIndex);
+                        File picardFixMateIndexIndex = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".bai"));
+                        deleteFileList.add(picardFixMateIndexIndex);
 
-                    File gatkCountCovariatesRecalFile = new File(outputDirectory,
-                            picardFixMateOutput.getName().replace(".bam", ".bam.cov"));
+                        File gatkCountCovariatesRecalFile = new File(outputDirectory,
+                                picardFixMateOutput.getName().replace(".bam", ".bam.cov"));
 
-                    File gatkTableRecalibrationOut = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.bam"));
+                        File gatkTableRecalibrationOut = new File(outputDirectory,
+                                picardFixMateOutput.getName().replace(".bam", ".recal.bam"));
 
-                    File gatkTableRecalibrationIndexOut = new File(outputDirectory,
-                            gatkTableRecalibrationOut.getName().replace(".bam", ".bai"));
+                        File gatkTableRecalibrationIndexOut = new File(outputDirectory,
+                                gatkTableRecalibrationOut.getName().replace(".bam", ".bai"));
 
-                    File samtoolsFlagstatOut = new File(outputDirectory,
-                            gatkTableRecalibrationOut.getName().replace(".bam", ".samtools.flagstat"));
+                        File samtoolsFlagstatOut = new File(outputDirectory,
+                                gatkTableRecalibrationOut.getName().replace(".bam", ".samtools.flagstat"));
 
-                    File gatkFlagstatOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(".bam", ".gatk.flagstat"));
+                        File gatkFlagstatOut = new File(outputDirectory,
+                                gatkTableRecalibrationOut.getName().replace(".bam", ".gatk.flagstat"));
 
-                    File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(".bam", ".vcf"));
+                        File gatkUnifiedGenotyperOut = new File(outputDirectory,
+                                gatkTableRecalibrationOut.getName().replace(".bam", ".vcf"));
 
-                    File gatkUnifiedGenotyperMetrics = new File(outputDirectory,
-                            gatkTableRecalibrationOut.getName().replace(".bam", ".metrics"));
+                        File gatkUnifiedGenotyperMetrics = new File(outputDirectory,
+                                gatkTableRecalibrationOut.getName().replace(".bam", ".metrics"));
 
-                    File filterVariant1Output = new File(outputDirectory,
-                            gatkTableRecalibrationOut.getName().replace(".bam", ".variant.vcf"));
+                        File filterVariant1Output = new File(outputDirectory,
+                                gatkTableRecalibrationOut.getName().replace(".bam", ".variant.vcf"));
 
-                    File gatkVariantRecalibratorRecalFile = new File(outputDirectory,
-                            filterVariant1Output.getName().replace(".vcf", ".recal"));
+                        File gatkVariantRecalibratorRecalFile = new File(outputDirectory,
+                                filterVariant1Output.getName().replace(".vcf", ".recal"));
 
-                    File gatkVariantRecalibratorTranchesFile = new File(outputDirectory,
-                            filterVariant1Output.getName().replace(".vcf", ".tranches"));
+                        File gatkVariantRecalibratorTranchesFile = new File(outputDirectory,
+                                filterVariant1Output.getName().replace(".vcf", ".tranches"));
 
-                    File gatkVariantRecalibratorRScriptFile = new File(outputDirectory,
-                            filterVariant1Output.getName().replace(".vcf", ".plots.R"));
+                        File gatkVariantRecalibratorRScriptFile = new File(outputDirectory,
+                                filterVariant1Output.getName().replace(".vcf", ".plots.R"));
 
-                    File gatkApplyRecalibrationOut = new File(outputDirectory,
-                            filterVariant1Output.getName().replace(".vcf", ".recalibrated.filtered.vcf"));
+                        File gatkApplyRecalibrationOut = new File(outputDirectory,
+                                filterVariant1Output.getName().replace(".vcf", ".recalibrated.filtered.vcf"));
 
-                    File filterVariant2Output = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf", ".ic_snps.vcf"));
+                        File filterVariant2Output = new File(outputDirectory,
+                                filterVariant1Output.getName().replace(".vcf", ".ic_snps.vcf"));
 
-                    CondorJobBuilder builder = WorkflowJobFactory.createJob(++count, RemoveCLI.class, attempt.getId()).siteName(siteName);
-                    for (File f : deleteFileList) {
-                        builder.addArgument(RemoveCLI.FILE, f.getAbsolutePath());
+                        List<File> filteredFileList = deleteFileList.stream().filter(a -> a.exists()).collect(Collectors.toList());
+
+                        if (CollectionUtils.isNotEmpty(filteredFileList)) {
+                            CondorJobBuilder builder = WorkflowJobFactory.createJob(++count, RemoveCLI.class, attempt.getId())
+                                    .siteName(siteName);
+                            filteredFileList.forEach(a -> builder.addArgument(RemoveCLI.FILE, a.getAbsolutePath()));
+                            CondorJob removeJob = builder.build();
+                            logger.info(removeJob.toString());
+                            graph.addVertex(removeJob);
+                        }
+
+                    } catch (Exception e) {
+                        throw new WorkflowException(e);
                     }
-                    CondorJob removeJob = builder.build();
-                    logger.info(removeJob.toString());
-                    graph.addVertex(removeJob);
 
-                } catch (Exception e) {
-                    throw new WorkflowException(e);
                 }
 
             }
