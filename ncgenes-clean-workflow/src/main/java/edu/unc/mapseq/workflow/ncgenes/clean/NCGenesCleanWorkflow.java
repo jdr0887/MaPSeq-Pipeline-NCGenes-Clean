@@ -108,7 +108,7 @@ public class NCGenesCleanWorkflow extends AbstractSequencingWorkflow {
                         File saiR2OutFile = new File(outputDirectory, r2FastqRootName + ".sai");
                         deleteFileList.add(saiR2OutFile);
 
-                        File bwaSAMPairedEndOutFile = new File(outputDirectory, rootFileName + ".sam");
+                        File bwaSAMPairedEndOutFile = new File(outputDirectory, rootFileName + ".mem.sam");
                         deleteFileList.add(bwaSAMPairedEndOutFile);
 
                         File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
